@@ -9,6 +9,9 @@ from datetime import date
 from protorpc import messages
 from google.appengine.ext import ndb
 
+# put possible choice for wordlist here
+WORDLIST = ['apple', 'orange','watermelon',
+            'papaya','raspberry', 'cucumber']
 
 class User(ndb.Model):
     """User profile"""
@@ -19,30 +22,47 @@ class User(ndb.Model):
 class Game(ndb.Model):
     """Game object"""
 
-    wordlist = ['apple', 'orange','watermelon',
-                'papaya','raspberry']
-
-    # target must be a string
     target = ndb.StringProperty(required=True)
-    # target = ndb.IntegerProperty(required=True)
-    attempts_allowed = ndb.IntegerProperty(required=True)
-    attempts_remaining = ndb.IntegerProperty(required=True, default=5)
+    attempts_allowed = ndb.IntegerProperty(required=True, default=10)
+    attempts_remaining = ndb.IntegerProperty(required=True, default=10)
     game_over = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
-    # previous_guesses = 0
+    guess_history = ndb.StringProperty(repeated=True)
+    guess_state = ndb.StringProperty(repeated=True)
+
 
     @classmethod
     def new_game(cls, user, min, max, attempts):
         """Creates and returns a new game"""
+
+        ## todo: remove max min vars from method and arguments
         if max < min:
             raise ValueError('Maximum must be greater than minimum')
         game = Game(user=user,
-                    target=random.choice(wordlist),
+                    target=random.choice(WORDLIST),
                     attempts_allowed=attempts,
                     attempts_remaining=attempts,
                     game_over=False)
+        game.set_guess_state()
         game.put()
         return game
+
+    def set_guess_state(self):
+        """init the guess state display"""
+        g = []
+        for letter in self.target:
+            g.append("_")
+        self.guess_state = g
+        print("guess state: "),
+        print g
+
+    def update_guess_state(self, letter):
+        """update letter in word display"""
+        for i in range(len(self.target)):
+            if letter == self.target[i]:
+                self.guess_state[i] = letter
+        self.put()
+
 
     def to_form(self, message):
         """Returns a GameForm representation of the Game"""
@@ -52,6 +72,7 @@ class Game(ndb.Model):
         form.attempts_remaining = self.attempts_remaining
         form.game_over = self.game_over
         form.message = message
+        form.guess_state = ' '.join(self.guess_state)
         return form
 
     def end_game(self, won=False):
@@ -84,6 +105,7 @@ class GameForm(messages.Message):
     game_over = messages.BooleanField(3, required=True)
     message = messages.StringField(4, required=True)
     user_name = messages.StringField(5, required=True)
+    guess_state = messages.StringField(6, required=True)
 
 
 ## won't need min max, but could enter words?
@@ -92,13 +114,18 @@ class NewGameForm(messages.Message):
     user_name = messages.StringField(1, required=True)
     min = messages.IntegerField(2, default=1)
     max = messages.IntegerField(3, default=10)
-    attempts = messages.IntegerField(4, default=5)
+    attempts = messages.IntegerField(4, default=10)
 
 ## guess will be a StringField, not Integer
 ## implement separate guess letter, guess word
 class MakeMoveForm(messages.Message):
-    """Used to make a move in an existing game"""
-    guess = messages.IntegerField(1, required=True)
+    """Used to make a move, (Guess a letter) in an existing game"""
+    guess = messages.StringField(1, required=True)
+
+
+class GuessWordForm(messages.Message):
+    """Used to guess the word in the current game"""
+    guess = messages.StringField(1, required=True)
 
 
 class ScoreForm(messages.Message):
