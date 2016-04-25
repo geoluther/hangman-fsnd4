@@ -27,6 +27,8 @@ class Game(ndb.Model):
     attempts_remaining = ndb.IntegerProperty(required=True, default=10)
     game_over = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
+    # since users have to be unique, can i use user for ancestor query?
+    organizerUserId = ndb.StringProperty()
     guess_history = ndb.StringProperty(repeated=True)
     guess_state = ndb.StringProperty(repeated=True)
 
