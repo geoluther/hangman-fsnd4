@@ -4,6 +4,11 @@ This can also contain game logic. For more complex games it would be wise to
 move game logic to another file. Ideally the API will be simple, concerned
 primarily with communication to/from the API's users."""
 
+## todos:
+## add endpoint to check for full word guess
+## check that only a single letter is entered for letter guess
+## return win if player guesses all letters correctly
+
 
 import logging
 import endpoints
@@ -71,6 +76,7 @@ class GuessANumberApi(remote.Service):
         taskqueue.add(url='/tasks/cache_average_attempts')
         return game.to_form('Good luck playing Hangman!')
 
+
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameForm,
                       path='game/{urlsafe_game_key}',
@@ -91,21 +97,23 @@ class GuessANumberApi(remote.Service):
                       name='make_move',
                       http_method='PUT')
     def make_move(self, request):
-        """endpoint to guess a word"""
+        """endpoint to guess a letter"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game.game_over:
             return game.to_form('Game already over!')
 
         game.attempts_remaining -= 1
 
+        # add check if guess is only 1 letter?
         # add if request.guess is already in history
         if request.guess in game.guess_history:
-            msg = 'You already tried that letter, dummy.'
+            msg = 'You already tried that letter, guess again.'
             game.put()
             return game.to_form(msg)
 
         game.guess_history.append(request.guess)
 
+        ## do i leave this in?
         if request.guess == game.target:
             game.end_game(True)
             return game.to_form('You win!')

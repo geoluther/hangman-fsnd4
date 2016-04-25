@@ -53,8 +53,6 @@ class Game(ndb.Model):
         for letter in self.target:
             g.append("_")
         self.guess_state = g
-        print("guess state: "),
-        print g
 
     def update_guess_state(self, letter):
         """update letter in word display"""
@@ -72,6 +70,7 @@ class Game(ndb.Model):
         form.attempts_remaining = self.attempts_remaining
         form.game_over = self.game_over
         form.message = message
+        # guess_state is a list, convert to string
         form.guess_state = ' '.join(self.guess_state)
         return form
 
