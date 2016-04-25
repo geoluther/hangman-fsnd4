@@ -20,3 +20,8 @@ get_game_history:
 
 Modify the SendReminderEmail handler so that this reminder email is only sent to users that have incomplete games.
 
+
+todo:
+
+clean up and remove old code from number game.
+implement new endpoints.
