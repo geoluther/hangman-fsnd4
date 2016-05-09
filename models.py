@@ -26,6 +26,7 @@ class Game(ndb.Model):
     attempts_allowed = ndb.IntegerProperty(required=True, default=10)
     attempts_remaining = ndb.IntegerProperty(required=True, default=10)
     game_over = ndb.BooleanProperty(required=True, default=False)
+    cancelled = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
     # since users have to be unique, can i use user for ancestor query?
     organizerUserId = ndb.StringProperty()
@@ -117,7 +118,11 @@ class NewGameForm(messages.Message):
     max = messages.IntegerField(3, default=10)
     attempts = messages.IntegerField(4, default=10)
 
-## guess will be a StringField, not Integer
+class CancelGameForm(messages.Message):
+    """Enter 1 to cancel a game"""
+    cancel = messages.BooleanField(1, default=False, required=True)
+
+
 ## implement separate guess letter, guess word
 class MakeMoveForm(messages.Message):
     """Used to make a move, (Guess a letter) in an existing game"""

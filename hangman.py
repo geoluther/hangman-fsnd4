@@ -1,16 +1,14 @@
 ## hangman game
+## basic stand alone, **not** what the app runs
 ## todo: deal with whitespace
 
 from random import choice
 
 class Hangman():
 
-    wordlist = ['apple',
-                'orange',
-                'two in the bush',
-                'eat more fruit',
-                'love thy neighbor']
-
+    wordlist = ['apple', 'orange','banana',
+                'mango', 'watermelon',
+                'strawberry','canteloupe']
 
     def __init__(self, name):
         self.word = self._get_random_word()
@@ -43,7 +41,14 @@ class Hangman():
 
     def guess_letter(self, letter):
         if self.guesses_left < 1:
-            return "sorry, you are out of guesses"
+            return "Sorry, you are out of guesses."
+
+        if len(letter) != 1:
+            return "Invalid guess, guess one letter at a time, try again."
+
+        if letter in self.guess_history:
+            return "You already guessed this letter, try again"
+
         self.guesses_left += -1
         self.guess_history.append(letter)
 
