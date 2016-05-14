@@ -16,7 +16,7 @@ from protorpc import remote, messages
 from google.appengine.api import memcache
 from google.appengine.api import taskqueue
 
-from models import User, Game, Score
+from models import User, Game, Score, Guess
 from models import StringMessage, NewGameForm, GameForm, MakeMoveForm,\
     ScoreForms, GuessWordForm, CancelGameForm, GameForms
 from utils import get_by_urlsafe
@@ -112,6 +112,9 @@ class GuessANumberApi(remote.Service):
     def make_move(self, request):
         """endpoint to guess a letter"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        guess_obj = Guess(guess=request.guess, msg="placeholder")
+        game.guess_hist_obj.append(guess_obj)
+
         if game.game_over:
             return game.to_form('Game already over!')
 
@@ -257,6 +260,21 @@ class GuessANumberApi(remote.Service):
 # get_user_rankings
 
 # get_game_history
+    # get_game
+    @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=GameForm,
+                      path='game_history/{urlsafe_game_key}',
+                      name='get_game_history',
+                      http_method='GET')
+    def get_game_history(self, request):
+        """Return the current game state."""
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if game:
+            return game.to_form('Game History')
+        else:
+            raise endpoints.NotFoundException('Game not found!')
+
+
 # query by game game, returns
 # history of choices, and messages?
 # make game history?: [('move 1', 'msg', 'guess'), ('move 2', msg', 'guess')]

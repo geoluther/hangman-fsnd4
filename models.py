@@ -19,6 +19,11 @@ class User(ndb.Model):
     email =ndb.StringProperty()
 
 
+class Guess(ndb.Model):
+    guess = ndb.StringProperty(required=True)
+    msg = ndb.StringProperty(required=True)
+
+
 class Game(ndb.Model):
     """Game object"""
 
@@ -28,9 +33,8 @@ class Game(ndb.Model):
     game_over = ndb.BooleanProperty(required=True, default=False)
     cancelled = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
-    # since users have to be unique, can i use user for ancestor query?
-    organizerUserId = ndb.StringProperty()
     guess_history = ndb.StringProperty(repeated=True)
+    guess_hist_obj = ndb.StructuredProperty(Guess, repeated=True)
     guess_state = ndb.StringProperty(repeated=True)
 
 
@@ -151,6 +155,10 @@ class ScoreForm(messages.Message):
 class ScoreForms(messages.Message):
     """Return multiple ScoreForms"""
     items = messages.MessageField(ScoreForm, 1, repeated=True)
+
+class GameHistoryForm(messages.Message):
+    message = messages.StringField(1, required=True)
+    guess = messages.StringField(2, required=True)
 
 
 class StringMessage(messages.Message):
