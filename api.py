@@ -18,7 +18,7 @@ from google.appengine.api import taskqueue
 
 from models import User, Game, Score
 from models import StringMessage, NewGameForm, GameForm, MakeMoveForm,\
-    ScoreForms, GuessWordForm, CancelGameForm
+    ScoreForms, GuessWordForm, CancelGameForm, GameForms
 from utils import get_by_urlsafe
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
@@ -168,7 +168,9 @@ class GuessANumberApi(remote.Service):
             return game.to_form(msg)
 
         if request.guess == game.target:
+            game.update_guess_state(request.guess)
             game.end_game(True)
+            game.put()
             return game.to_form("You guessed the word, you win!")
         else:
             game.update_guess_state(request.guess)
@@ -215,6 +217,25 @@ class GuessANumberApi(remote.Service):
         return StringMessage(message=memcache.get(MEMCACHE_MOVES_REMAINING) or '')
 
 
+## new endpoints
+
+    # get_user_games
+    @endpoints.method(request_message=USER_REQUEST,
+                      response_message=GameForms,
+                      path='games/user/{user_name}',
+                      name='get_user_games',
+                      http_method='GET')
+    def get_user_games(self, request):
+        """Returns all of an individual User's active"""
+        user = User.query(User.name == request.user_name).get()
+        if not user:
+            raise endpoints.NotFoundException(
+                    'A User with that name does not exist!')
+        games = Game.query(Game.user == user.key and Game.game_over == False)
+        return GameForms(items=[game.to_form("") for game in games])
+
+
+    # cancel_game
     @endpoints.method(request_message=CANCEL_GAME_REQUEST,
                       response_message=GameForm,
                       path='game/cancel_game/{urlsafe_game_key}',
@@ -230,7 +251,15 @@ class GuessANumberApi(remote.Service):
           game.put()
           return game.to_form("game cancelled")
 
+# get_high_scores
+# use get scores and filter by ?
 
+# get_user_rankings
+
+# get_game_history
+# query by game game, returns
+# history of choices, and messages?
+# make game history?: [('move 1', 'msg', 'guess'), ('move 2', msg', 'guess')]
 
 
     @staticmethod

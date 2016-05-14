@@ -110,6 +110,12 @@ class GameForm(messages.Message):
     guess_state = messages.StringField(6, required=True)
 
 
+## for get_user_games
+class GameForms(messages.Message):
+    """Return multiple GameForms"""
+    items = messages.MessageField(GameForm, 1, repeated=True)
+
+
 ## won't need min max, but could enter words?
 class NewGameForm(messages.Message):
     """Used to create a new game"""
