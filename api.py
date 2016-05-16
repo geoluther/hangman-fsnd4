@@ -18,13 +18,14 @@ from google.appengine.api import taskqueue
 
 from models import User, Game, Score, Guess
 from models import StringMessage, NewGameForm, GameForm, MakeMoveForm,\
-    ScoreForms, GuessWordForm, CancelGameForm, GameForms
+    ScoreForms, GuessWordForm, CancelGameForm, GameForms, GameHistoryForm,\
+    GuessForm, GuessHistoryForms
 from utils import get_by_urlsafe
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 
-CANCEL_GAME_REQUEST = endpoints.ResourceContainer(CancelGameForm,
-    urlsafe_game_key=messages.StringField(1),)
+CANCEL_GAME_REQUEST = endpoints.ResourceContainer(
+  urlsafe_game_key=messages.StringField(1),)
 
 GET_GAME_REQUEST = endpoints.ResourceContainer(
     urlsafe_game_key=messages.StringField(1),)
@@ -80,8 +81,7 @@ class GuessANumberApi(remote.Service):
             game = Game.new_game(user.key, request.min,
                                  request.max, request.attempts)
         except ValueError:
-            raise endpoints.BadRequestException('Maximum must be greater '
-                                                'than minimum!')
+            raise endpoints.BadRequestException('Username required!')
 
         # Use a task queue to update the average attempts remaining.
         # This operation is not needed to complete the creation of a new game
@@ -112,6 +112,7 @@ class GuessANumberApi(remote.Service):
     def make_move(self, request):
         """endpoint to guess a letter"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
+
         guess_obj = Guess(guess=request.guess, msg="placeholder")
         game.guess_hist_obj.append(guess_obj)
 
@@ -164,6 +165,9 @@ class GuessANumberApi(remote.Service):
         if game.game_over:
             return game.to_form('Game already over!')
 
+        guess_obj = Guess(guess=request.guess, msg="placeholder")
+        game.guess_hist_obj.append(guess_obj)
+
         game.attempts_remaining -= 1
 
         if request.guess in game.guess_history:
@@ -180,7 +184,7 @@ class GuessANumberApi(remote.Service):
             msg = "That's not the word"
 
         if game.attempts_remaining < 1:
-            game.end_game(False)
+            game.end_game(True)
             return game.to_form(msg + ' Game over!')
         else:
             game.put()
@@ -234,11 +238,12 @@ class GuessANumberApi(remote.Service):
         if not user:
             raise endpoints.NotFoundException(
                     'A User with that name does not exist!')
-        games = Game.query(Game.user == user.key and Game.game_over == False)
+        games = Game.query(Game.user == user.key, Game.game_over == False)
         return GameForms(items=[game.to_form("") for game in games])
 
 
     # cancel_game
+    # request_message=CANCEL_GAME_REQUEST,
     @endpoints.method(request_message=CANCEL_GAME_REQUEST,
                       response_message=GameForm,
                       path='game/cancel_game/{urlsafe_game_key}',
@@ -250,34 +255,36 @@ class GuessANumberApi(remote.Service):
         if game.game_over:
             return game.to_form("Game already over, can't cancel!")
         else:
-          game.cancelled(True)
-          game.put()
-          return game.to_form("game cancelled")
+          game.key.delete()
+          return game.to_form("Game Deleted.")
 
 # get_high_scores
-# use get scores and filter by ?
+# use get scores and filter by ? by what user?
 
 # get_user_rankings
 
 # get_game_history
+# query by game, returns
+# history of choices, and messages?
+# make game history?: [('move 1', 'msg', 'guess'), ('move 2', msg', 'guess')]
     # get_game
     @endpoints.method(request_message=GET_GAME_REQUEST,
-                      response_message=GameForm,
+                      response_message=GuessForm,
                       path='game_history/{urlsafe_game_key}',
                       name='get_game_history',
                       http_method='GET')
     def get_game_history(self, request):
-        """Return the current game state."""
+        """Return the move history of the game."""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
-            return game.to_form('Game History')
+            # scores = Score.query(Score.user == user.key)
+            # return ScoreForms(items=[score.to_form() for score in scores])
+            moves = [ (g.guess, g.msg) for g in game.guess_hist_obj]
+            print moves
+            return GuessForm(message="foo", moves="bar")
         else:
             raise endpoints.NotFoundException('Game not found!')
 
-
-# query by game game, returns
-# history of choices, and messages?
-# make game history?: [('move 1', 'msg', 'guess'), ('move 2', msg', 'guess')]
 
 
     @staticmethod

@@ -31,7 +31,6 @@ class Game(ndb.Model):
     attempts_allowed = ndb.IntegerProperty(required=True, default=10)
     attempts_remaining = ndb.IntegerProperty(required=True, default=10)
     game_over = ndb.BooleanProperty(required=True, default=False)
-    cancelled = ndb.BooleanProperty(required=True, default=False)
     user = ndb.KeyProperty(required=True, kind='User')
     guess_history = ndb.StringProperty(repeated=True)
     guess_hist_obj = ndb.StructuredProperty(Guess, repeated=True)
@@ -41,7 +40,6 @@ class Game(ndb.Model):
     @classmethod
     def new_game(cls, user, min, max, attempts):
         """Creates and returns a new game"""
-
         ## todo: remove max min vars from method and arguments
         if max < min:
             raise ValueError('Maximum must be greater than minimum')
@@ -50,11 +48,11 @@ class Game(ndb.Model):
                     attempts_allowed=attempts,
                     attempts_remaining=attempts,
                     game_over=False)
-        game.set_guess_state()
+        game._set_guess_state()
         game.put()
         return game
 
-    def set_guess_state(self):
+    def _set_guess_state(self):
         """init the guess state display"""
         g = []
         for letter in self.target:
@@ -79,6 +77,12 @@ class Game(ndb.Model):
         form.message = message
         # guess_state is a list, convert to string
         form.guess_state = ' '.join(self.guess_state)
+        return form
+
+    def return_history(self, message):
+        form = GameHistoryForm()
+        hist = [(m.msg, m.guess) for m in self.guess_hist_obj]
+        form.message = message
         return form
 
     def end_game(self, won=False):
@@ -129,7 +133,7 @@ class NewGameForm(messages.Message):
     attempts = messages.IntegerField(4, default=10)
 
 class CancelGameForm(messages.Message):
-    """Enter 1 to cancel a game"""
+    """Cancel and Delete A Game"""
     cancel = messages.BooleanField(1, default=False, required=True)
 
 
@@ -158,7 +162,14 @@ class ScoreForms(messages.Message):
 
 class GameHistoryForm(messages.Message):
     message = messages.StringField(1, required=True)
-    guess = messages.StringField(2, required=True)
+    moves = messages.StringField(2, required=True)
+
+class GuessForm(messages.Message):
+    message = messages.StringField(1, required=True)
+    move = messages.StringField(2, required=True)
+
+class GuessHistoryForms(messages.Message):
+    items = messages.MessageField(GuessForm, 1, repeated=True)
 
 
 class StringMessage(messages.Message):
