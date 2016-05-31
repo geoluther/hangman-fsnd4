@@ -19,7 +19,7 @@ from google.appengine.api import taskqueue
 from models import User, Game, Score, Guess
 from models import StringMessage, NewGameForm, GameForm, MakeMoveForm,\
     ScoreForms, GuessWordForm, CancelGameForm, GameForms, GameHistoryForm,\
-    GuessForm, GuessHistoryForms
+    GuessForm, GuessHistoryForms, HighScoreForm
 from utils import get_by_urlsafe
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
@@ -40,6 +40,8 @@ GUESS_WORD_REQUEST = endpoints.ResourceContainer(
 
 USER_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1),
                                            email=messages.StringField(2))
+
+HI_SCORE_REQUEST = endpoints.ResourceContainer(HighScoreForm)
 
 MEMCACHE_MOVES_REMAINING = 'MOVES_REMAINING'
 
@@ -258,8 +260,24 @@ class GuessANumberApi(remote.Service):
           game.key.delete()
           return game.to_form("Game Deleted.")
 
-# get_high_scores
-# use get scores and filter by ? by what user?
+# get_high_scores, filter by top 10
+# add request_message with optional number to results
+# order by guess, descendng, and game_over = True
+    @endpoints.method(request_message=HI_SCORE_REQUEST,
+                      response_message=ScoreForms,
+                      path='high_scores',
+                      name='get_high_scores',
+                      http_method='GET')
+    def get_high_scores(self, request):
+        """Return high scores"""
+        ng = request.top_n_games
+        print "number of games: ", ng
+
+        high_scores=[score.to_form() for
+          score in Score.query(Score.won == True).order(Score.guesses).fetch(ng)]
+        # print high_scores
+        # return ScoreForms(items=[score.to_form() for score in Score.query()])
+        return ScoreForms(items=high_scores)
 
 # get_user_rankings
 
@@ -281,7 +299,7 @@ class GuessANumberApi(remote.Service):
             # return ScoreForms(items=[score.to_form() for score in scores])
             moves = [ (g.guess, g.msg) for g in game.guess_hist_obj]
             print moves
-            return GuessForm(message="foo", moves="bar")
+            return GuessForm(message="History", move=' '.join(moves))
         else:
             raise endpoints.NotFoundException('Game not found!')
 
