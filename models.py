@@ -179,6 +179,6 @@ class StringMessage(messages.Message):
 
 class HighScoreForm(messages.Message):
     """enter Top N rankings to display, default = 5"""
-    top_n_games = messages.IntegerField(1, default=5)
+    top_n_games = messages.IntegerField(1, required=True, default=5)
 
 
