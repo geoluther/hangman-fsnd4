@@ -38,11 +38,9 @@ class Game(ndb.Model):
 
 
     @classmethod
-    def new_game(cls, user, min, max, attempts):
+    def new_game(cls, user, attempts):
         """Creates and returns a new game"""
-        ## todo: remove max min vars from method and arguments
-        if max < min:
-            raise ValueError('Maximum must be greater than minimum')
+        ## done: remove max min vars from method and arguments
         game = Game(user=user,
                     target=random.choice(WORDLIST),
                     attempts_allowed=attempts,
@@ -128,8 +126,6 @@ class GameForms(messages.Message):
 class NewGameForm(messages.Message):
     """Used to create a new game"""
     user_name = messages.StringField(1, required=True)
-    min = messages.IntegerField(2, default=1)
-    max = messages.IntegerField(3, default=10)
     attempts = messages.IntegerField(4, default=10)
 
 class CancelGameForm(messages.Message):
@@ -160,13 +156,16 @@ class ScoreForms(messages.Message):
     """Return multiple ScoreForms"""
     items = messages.MessageField(ScoreForm, 1, repeated=True)
 
+
 class GameHistoryForm(messages.Message):
     message = messages.StringField(1, required=True)
     moves = messages.StringField(2, required=True)
 
+
 class GuessForm(messages.Message):
     message = messages.StringField(1, required=True)
     move = messages.StringField(2, required=True)
+
 
 class GuessHistoryForms(messages.Message):
     items = messages.MessageField(GuessForm, 1, repeated=True)

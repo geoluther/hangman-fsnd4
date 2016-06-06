@@ -1,6 +1,9 @@
 # todos:
 
 
+[[ done ]]
+- remove max / min values in new game creation
+
 [[ done ? ]]
 - **get_user_games**
     - This returns all of a User's active games. <todo what if the player prevented concurrent games? Maybe this should be a list of all games (active or not) that the user is related to>
@@ -22,7 +25,7 @@
     - Accept an optional parameter `number_of_results` that limits the number of results returned.
     - Note: If you choose to implement a 2-player game this endpoint is not required.
 
-    - returns list of top 10 high scores
+    - returns list of top N high scores
 
 
 [[ fewest average guesses? ]]

@@ -80,8 +80,7 @@ class GuessANumberApi(remote.Service):
             raise endpoints.NotFoundException(
                     'A User with that name does not exist!')
         try:
-            game = Game.new_game(user.key, request.min,
-                                 request.max, request.attempts)
+            game = Game.new_game(user.key, request.attempts)
         except ValueError:
             raise endpoints.BadRequestException('Username required!')
 
@@ -115,8 +114,7 @@ class GuessANumberApi(remote.Service):
         """endpoint to guess a letter"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
 
-        guess_obj = Guess(guess=request.guess, msg="placeholder")
-        game.guess_hist_obj.append(guess_obj)
+        guess_obj = Guess(guess=request.guess, msg="")
 
         if game.game_over:
             return game.to_form('Game already over!')
@@ -126,12 +124,16 @@ class GuessANumberApi(remote.Service):
         #  check guess is one letter only
         if len(request.guess) != 1:
             msg = 'One letter at a time please, guess again.'
+            guess_obj.msg =msg
+            game.guess_hist_obj.append(guess_obj)
             game.put()
             return game.to_form(msg)
 
         # check if guess is already in history
         if request.guess in game.guess_history:
             msg = 'You already tried that letter, guess again.'
+            guess_obj.msg =msg
+            game.guess_hist_obj.append(guess_obj)
             game.put()
             return game.to_form(msg)
 
@@ -145,12 +147,20 @@ class GuessANumberApi(remote.Service):
 
         if game.target == ''.join(game.guess_state):
             game.end_game(True)
-            return game.to_form('You guessed all the letters, you win!')
+            msg = 'You guessed all the letters, you win!'
+            guess_obj.msg = msg
+            game.guess_hist_obj.append(guess_obj)
+            game.put()
+            return game.to_form(msg)
 
         if game.attempts_remaining < 1:
             game.end_game(False)
+            guess_obj.msg =  msg + ' Game over!'
+            game.guess_hist_obj.append(guess_obj)
             return game.to_form(msg + ' Game over!')
         else:
+            guess_obj.msg = msg
+            game.guess_hist_obj.append(guess_obj)
             game.put()
             return game.to_form(msg)
 
@@ -167,29 +177,38 @@ class GuessANumberApi(remote.Service):
         if game.game_over:
             return game.to_form('Game already over!')
 
-        guess_obj = Guess(guess=request.guess, msg="placeholder")
+        guess_obj = Guess(guess=request.guess, msg="")
         game.guess_hist_obj.append(guess_obj)
 
         game.attempts_remaining -= 1
 
         if request.guess in game.guess_history:
             msg = 'You already tried that word, guess again.'
+            guess_obj.msg=msg
+            game.guess_hist_obj.append(guess_obj)
             return game.to_form(msg)
 
         if request.guess == game.target:
+            msg="You guessed the word, you win!"
             game.update_guess_state(request.guess)
+            guess_obj.msg=msg
+            game.guess_hist_obj.append(guess_obj)
             game.end_game(True)
             game.put()
-            return game.to_form("You guessed the word, you win!")
+            return game.to_form(msg)
         else:
             game.update_guess_state(request.guess)
             msg = "That's not the word"
 
         if game.attempts_remaining < 1:
             game.end_game(True)
+            guess_obj.msg=msg
+            game.guess_hist_obj.append(msg + ' Game over!')
             return game.to_form(msg + ' Game over!')
         else:
             game.put()
+            guess_obj.msg=msg
+            game.guess_hist_obj.append(guess_obj)
             return game.to_form(msg)
 
 
@@ -279,7 +298,8 @@ class GuessANumberApi(remote.Service):
         # return ScoreForms(items=[score.to_form() for score in Score.query()])
         return ScoreForms(items=high_scores)
 
-# get_user_rankings
+# get_player_rank
+
 
 # get_game_history
 # query by game, returns
