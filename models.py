@@ -22,6 +22,8 @@ class User(ndb.Model):
 class Guess(ndb.Model):
     guess = ndb.StringProperty(required=True)
     msg = ndb.StringProperty(required=True)
+    word_state = ndb.StringProperty(default="foo")
+    guess_num = ndb.IntegerProperty(default=0)
 
 
 class Game(ndb.Model):
@@ -79,8 +81,9 @@ class Game(ndb.Model):
 
     def return_history(self, message):
         form = GameHistoryForm()
-        hist = [(m.msg, m.guess) for m in self.guess_hist_obj]
-        form.message = message
+        hist = [ m.msg + m.guess for m in self.guess_hist_obj]
+        form.message = "you got the moves"
+        form.moves = "like jagger"
         return form
 
     def end_game(self, won=False):
@@ -165,6 +168,12 @@ class GameHistoryForm(messages.Message):
 class GuessForm(messages.Message):
     message = messages.StringField(1, required=True)
     move = messages.StringField(2, required=True)
+    word_state = messages.StringField(3, default="foo")
+    guess_num = messages.IntegerField(4, default=42)
+
+
+class GameHistoryForms(messages.Message):
+    items = messages.MessageField(GuessForm, 1, repeated=True)
 
 
 class GuessHistoryForms(messages.Message):

@@ -19,7 +19,7 @@ from google.appengine.api import taskqueue
 from models import User, Game, Score, Guess
 from models import StringMessage, NewGameForm, GameForm, MakeMoveForm,\
     ScoreForms, GuessWordForm, CancelGameForm, GameForms, GameHistoryForm,\
-    GuessForm, GuessHistoryForms, HighScoreForm
+    GuessForm, GuessHistoryForms, HighScoreForm, GameHistoryForm
 from utils import get_by_urlsafe
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
@@ -90,6 +90,7 @@ class GuessANumberApi(remote.Service):
         taskqueue.add(url='/tasks/cache_average_attempts')
         return game.to_form('Good luck playing Hangman!')
 
+
     # get_game
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameForm,
@@ -113,18 +114,19 @@ class GuessANumberApi(remote.Service):
     def make_move(self, request):
         """endpoint to guess a letter"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-
         guess_obj = Guess(guess=request.guess, msg="")
 
         if game.game_over:
             return game.to_form('Game already over!')
 
         game.attempts_remaining -= 1
+        guess_obj.guess_num = 1 + len(game.guess_history)
+        guess_obj.word_state = ' '.join(game.guess_state)
 
         #  check guess is one letter only
         if len(request.guess) != 1:
             msg = 'One letter at a time please, guess again.'
-            guess_obj.msg =msg
+            guess_obj.msg = msg
             game.guess_hist_obj.append(guess_obj)
             game.put()
             return game.to_form(msg)
@@ -132,7 +134,7 @@ class GuessANumberApi(remote.Service):
         # check if guess is already in history
         if request.guess in game.guess_history:
             msg = 'You already tried that letter, guess again.'
-            guess_obj.msg =msg
+            guess_obj.msg = msg
             game.guess_hist_obj.append(guess_obj)
             game.put()
             return game.to_form(msg)
@@ -142,6 +144,7 @@ class GuessANumberApi(remote.Service):
         if request.guess in game.target:
             msg = 'The word contains your letter!'
             game.update_guess_state(request.guess)
+            guess_obj.word_state = ' '.join(game.guess_state)
         else:
             msg = 'Letter not in word.'
 
@@ -157,6 +160,7 @@ class GuessANumberApi(remote.Service):
             game.end_game(False)
             guess_obj.msg =  msg + ' Game over!'
             game.guess_hist_obj.append(guess_obj)
+            game.put()
             return game.to_form(msg + ' Game over!')
         else:
             guess_obj.msg = msg
@@ -307,7 +311,7 @@ class GuessANumberApi(remote.Service):
 # make game history?: [('move 1', 'msg', 'guess'), ('move 2', msg', 'guess')]
     # get_game
     @endpoints.method(request_message=GET_GAME_REQUEST,
-                      response_message=GuessForm,
+                      response_message=GuessHistoryForms,
                       path='game_history/{urlsafe_game_key}',
                       name='get_game_history',
                       http_method='GET')
@@ -315,11 +319,10 @@ class GuessANumberApi(remote.Service):
         """Return the move history of the game."""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
-            # scores = Score.query(Score.user == user.key)
-            # return ScoreForms(items=[score.to_form() for score in scores])
-            moves = [ (g.guess, g.msg) for g in game.guess_hist_obj]
-            print moves
-            return GuessForm(message="History", move=' '.join(moves))
+            history = [GuessForm(message=g.msg, move=g.guess,
+                                word_state=g.word_state,
+                                guess_num=g.guess_num) for g in game.guess_hist_obj]
+            return GuessHistoryForms(items=history)
         else:
             raise endpoints.NotFoundException('Game not found!')
 
