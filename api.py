@@ -182,14 +182,16 @@ class GuessANumberApi(remote.Service):
             return game.to_form('Game already over!')
 
         guess_obj = Guess(guess=request.guess, msg="")
-        game.guess_hist_obj.append(guess_obj)
 
         game.attempts_remaining -= 1
+        guess_obj.guess_num = 1 + len(game.guess_history)
+        guess_obj.word_state = ' '.join(game.guess_state)
 
         if request.guess in game.guess_history:
             msg = 'You already tried that word, guess again.'
             guess_obj.msg=msg
             game.guess_hist_obj.append(guess_obj)
+            game.put()
             return game.to_form(msg)
 
         if request.guess == game.target:
@@ -208,11 +210,12 @@ class GuessANumberApi(remote.Service):
             game.end_game(True)
             guess_obj.msg=msg
             game.guess_hist_obj.append(msg + ' Game over!')
+            game.put()
             return game.to_form(msg + ' Game over!')
         else:
-            game.put()
             guess_obj.msg=msg
             game.guess_hist_obj.append(guess_obj)
+            game.put()
             return game.to_form(msg)
 
 

@@ -47,6 +47,7 @@
     - Adding this functionality will require some additional properties in the 'Game' model along with a Form, and endpoint to present the data to the User.
 
 
+
 ### Task 4: Improve Notifications
 In the skeleton Guess a Number project, a cron job and associated handler have been created (see cron.yaml and main.py).
 This sends an hourly reminder email to every User with an email address to try out 'Guess a Number'.
@@ -54,6 +55,7 @@ This is probably annoying the users.
 
 Modify the SendReminderEmail handler so that this reminder email is only sent to users that have incomplete games (or some other logic that makes sense to you).
 Make sure to update the message to reflect this.
+
 
 **Optional Improvements:**
 - If you're feeling  ambitious you can implement more sophisticated notifications.

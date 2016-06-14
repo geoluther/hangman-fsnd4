@@ -82,8 +82,8 @@ class Game(ndb.Model):
     def return_history(self, message):
         form = GameHistoryForm()
         hist = [ m.msg + m.guess for m in self.guess_hist_obj]
-        form.message = "you got the moves"
-        form.moves = "like jagger"
+        form.message = "You got the Moves"
+        form.moves = "Like Jagger"
         return form
 
     def end_game(self, won=False):
