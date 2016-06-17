@@ -107,6 +107,9 @@ class Score(ndb.Model):
     def to_form(self):
         return ScoreForm(user_name=self.user.get().name, won=self.won,
                          date=str(self.date), guesses=self.guesses)
+    def to_rank(self):
+        return RankForm(user_name=self.user.get().name, won=self.won,
+                         date=str(self.date), guesses=self.guesses)
 
 
 class GameForm(messages.Message):
@@ -189,4 +192,14 @@ class HighScoreForm(messages.Message):
     """enter Top N rankings to display, default = 5"""
     top_n_games = messages.IntegerField(1, required=True, default=5)
 
+
+# Rank Forms
+class RankForm(messages.Message):
+    """User Name and average guesses"""
+    user = messages.StringField(1, required=True)
+    avg_guesses =  messages.FloatField(2, required=True)
+
+class RankForms(messages.Message):
+    """Users, sorted by lowest average guesses"""
+    items = messages.MessageField(RankForm, 1, repeated=True)
 

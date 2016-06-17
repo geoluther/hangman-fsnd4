@@ -12,6 +12,8 @@ primarily with communication to/from the API's users."""
 
 import logging
 import endpoints
+from operator import itemgetter, attrgetter, methodcaller
+
 from protorpc import remote, messages
 from google.appengine.api import memcache
 from google.appengine.api import taskqueue
@@ -19,7 +21,7 @@ from google.appengine.api import taskqueue
 from models import User, Game, Score, Guess
 from models import StringMessage, NewGameForm, GameForm, MakeMoveForm,\
     ScoreForms, GuessWordForm, CancelGameForm, GameForms, GameHistoryForm,\
-    GuessForm, GuessHistoryForms, HighScoreForm, GameHistoryForm
+    GuessForm, GuessHistoryForms, HighScoreForm, GameHistoryForm, RankForm, RankForms
 from utils import get_by_urlsafe
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
@@ -135,9 +137,6 @@ class GuessANumberApi(remote.Service):
         if request.guess in game.guess_history:
             msg = 'You already tried that letter, guess again.'
             guess_obj.msg = msg
-            game.guess_hist_obj.append(guess_obj)
-            game.put()
-            return game.to_form(msg)
 
         game.guess_history.append(request.guess)
 
@@ -242,7 +241,7 @@ class GuessANumberApi(remote.Service):
         scores = Score.query(Score.user == user.key)
         return ScoreForms(items=[score.to_form() for score in scores])
 
-
+    ## why is this called average attempts?
     @endpoints.method(response_message=StringMessage,
                       path='games/average_attempts',
                       name='get_average_attempts_remaining',
@@ -261,7 +260,7 @@ class GuessANumberApi(remote.Service):
                       name='get_user_games',
                       http_method='GET')
     def get_user_games(self, request):
-        """Returns all of an individual User's active"""
+        """Returns all of an individual User's active games"""
         user = User.query(User.name == request.user_name).get()
         if not user:
             raise endpoints.NotFoundException(
@@ -306,13 +305,29 @@ class GuessANumberApi(remote.Service):
         return ScoreForms(items=high_scores)
 
 # get_player_rank
+    @endpoints.method(response_message=RankForms,
+                      path='ranks',
+                      name='get_ranks',
+                      http_method='GET')
+    def get_scores(self, request):
+        """Return rankings of players based on average guesses"""
+        users = [user for user in User.query().fetch()]
+        ranks = []
+
+        for user in users:
+          games = Score.query(Score.user == user.key).fetch()
+          total_guesses = sum([g.guesses for g in games])
+          avg_guesses = float(total_guesses) / len(games)
+          rankform = RankForm(user = user.name,
+            avg_guesses = avg_guesses)
+
+          ranks.append(rankform)
+
+        s = sorted(ranks, key=attrgetter('avg_guesses') )
+        return RankForms(items=s)
 
 
-# get_game_history
-# query by game, returns
-# history of choices, and messages?
-# make game history?: [('move 1', 'msg', 'guess'), ('move 2', msg', 'guess')]
-    # get_game
+    # get_game_history
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GuessHistoryForms,
                       path='game_history/{urlsafe_game_key}',

@@ -28,14 +28,17 @@
     - returns list of top N high scores
 
 
-[[ fewest average guesses? ]]
+[[ done ]]
  - **get_user_rankings**
     - Come up with a method for ranking the performance of each player.
       For "Guess a Number" this could be by winning percentage with ties broken by the average number of guesses.
     - Create an endpoint that returns this player ranking. The results should include each Player's name and the 'performance' indicator (eg. win/loss ratio).
 
+    returns form sorted by fewest average guesses for all complete games by each user
 
-[[ in progress ]]
+
+
+[[ done? ]]
  - **get_game_history**
     - Your API Users may want to be able to see a 'history' of moves for each game.
     - For example, Chess uses a format called <a href="https://en.wikipedia.org/wiki/Portable_Game_Notation" target="_blank">PGN</a>) which allows any game to be replayed and watched move by move.
@@ -66,6 +69,8 @@ You can use the `SendReminderEmail` handler in main.py as a template.
 Remember that you will need to pass parameters to identify the Game and User that should receive the reminder.
 Don't forget to update `app.yaml` with the new Handler listing.
 Finally, consult Google App Engine documentation for <a href="https://cloud.google.com/appengine/docs/python/taskqueue/overview-push" target="_blank">Using Push Queues in Python</a>.
+
+
 
 #### Task 5: README and API Documentation
 Be sure to document your game. Your README file should include:
