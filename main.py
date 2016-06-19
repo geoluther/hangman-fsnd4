@@ -19,21 +19,18 @@ class SendReminderEmail(webapp2.RequestHandler):
         app_id = app_identity.get_application_id()
         users = User.query(User.email != None)
 
-        # only send one email per user, even if they have multiple unfinished games
-        games = [ Game.query(Game.user == user.key, Game.game_over == False).get() for user in users]
-
-        for game in games:
-            name = game.user.get().name
-            email = game.user.get().email
-
-            subject = 'Hangman reminder!'
-            body = 'Hello {}, you have one or more unfinished Hangman games'.format(name)
-            # This will send test emails, the arguments to send_mail are:
-            # from, to, subject, body
-            mail.send_mail('noreply@{}.appspotmail.com'.format(app_id),
-                           email,
-                           subject,
-                           body)
+        for user in users:
+        # Get all the users games which are over.
+            games = Game.query(Game.user == user.key, Game.game_over == False)
+            if games:
+                subject = 'Hangman reminder!'
+                body = 'Hello {}, you have one or more unfinished Hangman games'.format(user.name)
+                # This will send test emails, the arguments to send_mail are:
+                # from, to, subject, body
+                mail.send_mail('noreply@{}.appspotmail.com'.format(app_id),
+                            user.email,
+                            subject,
+                            body)
 
 
 class UpdateAverageMovesRemaining(webapp2.RequestHandler):

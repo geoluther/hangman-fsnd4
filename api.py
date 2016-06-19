@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-`
 """api.py -  Create, configure and operate a hangman game"""
 
-
 import logging
 import endpoints
 from operator import itemgetter, attrgetter, methodcaller
@@ -44,7 +43,6 @@ MEMCACHE_MOVES_REMAINING = 'MOVES_REMAINING'
 @endpoints.api(name='hangman', version='v1')
 class GuessANumberApi(remote.Service):
     """Game API"""
-    # create_user endpoint
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=StringMessage,
                       path='user',
@@ -61,7 +59,6 @@ class GuessANumberApi(remote.Service):
                 request.user_name))
 
 
-    # new_game endpoint
     @endpoints.method(request_message=NEW_GAME_REQUEST,
                       response_message=GameForm,
                       path='game',
@@ -85,7 +82,6 @@ class GuessANumberApi(remote.Service):
         return game.to_form('Good luck playing Hangman!')
 
 
-    # get_game
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameForm,
                       path='game/{urlsafe_game_key}',
@@ -99,7 +95,7 @@ class GuessANumberApi(remote.Service):
         else:
             raise endpoints.NotFoundException('Game not found!')
 
-    # make move, i.e guess letter, todo: ignore case?
+
     @endpoints.method(request_message=MAKE_MOVE_REQUEST,
                       response_message=GameForm,
                       path='game/make_move/{urlsafe_game_key}',
@@ -113,9 +109,15 @@ class GuessANumberApi(remote.Service):
         if game.game_over:
             raise endpoints.ForbiddenException('Illegal action: Game is already over.')
 
-        game.attempts_remaining -= 1
         guess_obj.guess_num = 1 + len(game.guess_history)
         guess_obj.word_state = ' '.join(game.guess_state)
+
+        # check if isalpha
+        if request.guess.isalpha() == False:
+            raise endpoints.ForbiddenException('Illegal action: Letters only.')
+
+        if request.guess == game.target:
+            print "hooray! you win"
 
         #  check guess is one letter only
         if len(request.guess) != 1:
@@ -127,7 +129,7 @@ class GuessANumberApi(remote.Service):
 
         # check if guess is already in history
         if request.guess in game.guess_history:
-            msg = 'You already tried that letter, guess again.'
+            msg = 'You already tried that, guess again.'
             guess_obj.msg = msg
 
         game.guess_history.append(request.guess)
@@ -138,6 +140,7 @@ class GuessANumberApi(remote.Service):
             guess_obj.word_state = ' '.join(game.guess_state)
         else:
             msg = 'Letter not in word.'
+            game.attempts_remaining -= 1
 
         if game.target == ''.join(game.guess_state):
             game.end_game(True)
@@ -160,7 +163,6 @@ class GuessANumberApi(remote.Service):
             return game.to_form(msg)
 
 
-    # guess word
     @endpoints.method(request_message=GUESS_WORD_REQUEST,
                       response_message=GameForm,
                       path='game/guess_word/{urlsafe_game_key}',
@@ -244,7 +246,6 @@ class GuessANumberApi(remote.Service):
 
 ## new endpoints
 
-    # get_user_games
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=GameForms,
                       path='games/user/{user_name}',
@@ -260,8 +261,6 @@ class GuessANumberApi(remote.Service):
         return GameForms(items=[game.to_form("") for game in games])
 
 
-    # cancel_game
-    # request_message=CANCEL_GAME_REQUEST,
     @endpoints.method(request_message=CANCEL_GAME_REQUEST,
                       response_message=GameForm,
                       path='game/cancel_game/{urlsafe_game_key}',
@@ -283,19 +282,18 @@ class GuessANumberApi(remote.Service):
                       name='get_high_scores',
                       http_method='GET')
     def get_high_scores(self, request):
-        """get_high_scores, filter by top 10
-        add request_message with optional number to results
+        """get_high_scores, filter by top 10 add
+        request_message with optional number to results
         order by guess, descendng, and game_over = True"""
         ng = request.top_n_games
         print "number of games: ", ng
 
         high_scores=[score.to_form() for
           score in Score.query(Score.won == True).order(Score.guesses).fetch(ng)]
-        # print high_scores
-        # return ScoreForms(items=[score.to_form() for score in Score.query()])
+
         return ScoreForms(items=high_scores)
 
-# get_player_rank
+
     @endpoints.method(response_message=RankForms,
                       path='ranks',
                       name='get_ranks',
@@ -306,21 +304,20 @@ class GuessANumberApi(remote.Service):
         ranks = []
 
         for user in users:
-          games = Score.query(Score.user == user.key).fetch()
-          if len(games) != 0:
-            total_guesses = sum([g.guesses for g in games])
-            print total_guesses
-            avg_guesses = float(total_guesses) / len(games)
-            rankform = RankForm(user = user.name,
-              avg_guesses = avg_guesses)
+            games = Score.query(Score.user == user.key).fetch()
+            if len(games) != 0:
+              total_guesses = sum([g.guesses for g in games])
+              print total_guesses
+              avg_guesses = float(total_guesses) / len(games)
+              rankform = RankForm(user = user.name,
+                avg_guesses = avg_guesses)
 
-            ranks.append(rankform)
+              ranks.append(rankform)
 
         s = sorted(ranks, key=attrgetter('avg_guesses') )
         return RankForms(items=s)
 
 
-    # get_game_history
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GuessHistoryForms,
                       path='game_history/{urlsafe_game_key}',
@@ -338,7 +335,6 @@ class GuessANumberApi(remote.Service):
             raise endpoints.NotFoundException('Game not found!')
 
 
-
     @staticmethod
     def _cache_average_attempts():
         """Populates memcache with the average moves remaining of Games"""
@@ -350,7 +346,6 @@ class GuessANumberApi(remote.Service):
             average = float(total_attempts_remaining)/count
             memcache.set(MEMCACHE_MOVES_REMAINING,
                          'The average moves remaining is {:.2f}'.format(average))
-
 
 
 api = endpoints.api_server([GuessANumberApi])

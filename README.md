@@ -13,6 +13,8 @@ Many different Hangman games can be played by many different Users at any
 given time. Each game can be retrieved or played by using the path parameter
 `urlsafe_game_key`.
 
+""You still need to document the score-keeping.""
+
 ##Endpoints:
 
  - **cancel_game**

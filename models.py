@@ -66,7 +66,6 @@ class Game(ndb.Model):
                 self.guess_state[i] = letter
         self.put()
 
-
     def to_form(self, message):
         """Returns a GameForm representation of the Game"""
         form = GameForm()
@@ -132,6 +131,7 @@ class NewGameForm(messages.Message):
     """Used to create a new game"""
     user_name = messages.StringField(1, required=True)
     attempts = messages.IntegerField(4, default=10)
+
 
 class CancelGameForm(messages.Message):
     """Cancel and Delete A Game"""
