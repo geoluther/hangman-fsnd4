@@ -308,19 +308,21 @@ class GuessANumberApi(remote.Service):
                       path='ranks',
                       name='get_ranks',
                       http_method='GET')
-    def get_scores(self, request):
+    def get_ranks(self, request):
         """Return rankings of players based on average guesses"""
-        users = [user for user in User.query().fetch()]
+        users = User.query().fetch()
         ranks = []
 
         for user in users:
           games = Score.query(Score.user == user.key).fetch()
-          total_guesses = sum([g.guesses for g in games])
-          avg_guesses = float(total_guesses) / len(games)
-          rankform = RankForm(user = user.name,
-            avg_guesses = avg_guesses)
+          if len(games) != 0:
+            total_guesses = sum([g.guesses for g in games])
+            print total_guesses
+            avg_guesses = float(total_guesses) / len(games)
+            rankform = RankForm(user = user.name,
+              avg_guesses = avg_guesses)
 
-          ranks.append(rankform)
+            ranks.append(rankform)
 
         s = sorted(ranks, key=attrgetter('avg_guesses') )
         return RankForms(items=s)
