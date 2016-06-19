@@ -13,7 +13,10 @@ Many different Hangman games can be played by many different Users at any
 given time. Each game can be retrieved or played by using the path parameter
 `urlsafe_game_key`.
 
-""You still need to document the score-keeping.""
+## Score Keeping:
+Games are scored and randed by the fewest number of guesses it takes a user to complete a game.
+The game is lost if the user cannont guess the word in the required number of guesses.
+Incorrect letter and incorrect word guesses count against the number of guesses.
 
 ##Endpoints:
 
