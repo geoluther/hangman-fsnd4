@@ -189,9 +189,6 @@ class GuessANumberApi(remote.Service):
         if request.guess in game.guess_history:
             msg = 'You already tried that word, guess again.'
             guess_obj.msg=msg
-            game.guess_hist_obj.append(guess_obj)
-            game.put()
-            return game.to_form(msg)
 
         if request.guess == game.target:
             msg="You guessed the word, you win!"
