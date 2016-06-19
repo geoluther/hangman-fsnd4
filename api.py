@@ -190,6 +190,8 @@ class GuessANumberApi(remote.Service):
             msg = 'You already tried that word, guess again.'
             guess_obj.msg=msg
 
+        game.guess_history.append(request.guess)
+
         if request.guess == game.target:
             msg="You guessed the word, you win!"
             game.update_guess_state(request.guess)
@@ -200,7 +202,7 @@ class GuessANumberApi(remote.Service):
             return game.to_form(msg)
         else:
             game.update_guess_state(request.guess)
-            msg = "That's not the word"
+            msg = "That's not the word."
 
         if game.attempts_remaining < 1:
             game.end_game(True)
@@ -238,7 +240,7 @@ class GuessANumberApi(remote.Service):
         scores = Score.query(Score.user == user.key)
         return ScoreForms(items=[score.to_form() for score in scores])
 
-    ## why is this called average attempts?
+
     @endpoints.method(response_message=StringMessage,
                       path='games/average_attempts',
                       name='get_average_attempts_remaining',

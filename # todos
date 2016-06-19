@@ -38,7 +38,7 @@
 
 
 
-[[ done? ]]
+[[ done ]]
  - **get_game_history**
     - Your API Users may want to be able to see a 'history' of moves for each game.
     - For example, Chess uses a format called <a href="https://en.wikipedia.org/wiki/Portable_Game_Notation" target="_blank">PGN</a>) which allows any game to be replayed and watched move by move.
@@ -51,6 +51,7 @@
 
 
 
+[[ done ]]
 ### Task 4: Improve Notifications
 In the skeleton Guess a Number project, a cron job and associated handler have been created (see cron.yaml and main.py).
 This sends an hourly reminder email to every User with an email address to try out 'Guess a Number'.
