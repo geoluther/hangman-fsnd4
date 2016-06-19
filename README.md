@@ -1,34 +1,27 @@
-#Full Stack Nanodegree Project 4 Refresh
-
-## Set-Up Instructions:
-1.  Update the value of application in app.yaml to the app ID you have registered
- in the App Engine admin console and would like to use to host your instance of this sample.
-1.  Run the app with the devserver using dev_appserver.py DIR, and ensure it's
- running by visiting the API Explorer - by default localhost:8080/_ah/api/explorer.
-1.  (Optional) Generate your client library(ies) with the endpoints tool.
- Deploy your application.
-
-
+# Full Stack Nanodegree Project 5: Hangman Game API
 
 ##Game Description:
-Guess a number is a simple guessing game. Each game begins with a random 'target'
-number between the minimum and maximum values provided, and a maximum number of
-'attempts'. 'Guesses' are sent to the `make_move` endpoint which will reply
-with either: 'too low', 'too high', 'you win', or 'game over' (if the maximum
-number of attempts is reached).
-Many different Guess a Number games can be played by many different Users at any
+In Hangman, the goal of theam is to guess the word by choosing one letter at a time
+until the player can guess the full word, or when the max number of attempts are used.
+Each game begins with a random 'word', with a maximum number of
+'attempts'. 'Guesses' of letters are sent to the `make_move` endpoint which will reply
+with either: 'letter in word', 'letter not in word, 'you already tried that letter',
+or 'game over' (if the maximum number of attempts is reached). 'Guesses' by word return the same responses.
+Players may only guess one letter or word at a time. The game keeps track of the current 'guess' state of the word.
+
+Many different Hangman games can be played by many different Users at any
 given time. Each game can be retrieved or played by using the path parameter
 `urlsafe_game_key`.
 
-##Files Included:
- - api.py: Contains endpoints and game playing logic.
- - app.yaml: App configuration.
- - cron.yaml: Cronjob configuration.
- - main.py: Handler for taskqueue handler.
- - models.py: Entity and message definitions including helper methods.
- - utils.py: Helper function for retrieving ndb.Models by urlsafe Key string.
+##Endpoints:
 
-##Endpoints Included:
+ - **cancel_game**
+	- Path: 'game/cancel_game/{urlsafe_game_key}''
+    - Method: PUT
+    - Parameters: urlsafe_game_key
+    - Returns: StringMessage
+    - Description: Cancels the game given, deleting it from the database.
+
  - **create_user**
     - Path: 'user'
     - Method: POST
@@ -37,15 +30,12 @@ given time. Each game can be retrieved or played by using the path parameter
     - Description: Creates a new User. user_name provided must be unique. Will
     raise a ConflictException if a User with that user_name already exists.
 
- - **new_game**
-    - Path: 'game'
-    - Method: POST
-    - Parameters: user_name, min, max, attempts
-    - Returns: GameForm with initial game state.
-    - Description: Creates a new Game. user_name provided must correspond to an
-    existing user - will raise a NotFoundException if not. Min must be less than
-    max. Also adds a task to a task queue to update the average moves remaining
-    for active games.
+ - **get_average_attempts_remaining**
+ 	- Path: 'games/average_attempts'
+ 	- Method: GET
+ 	- Parameters: None
+ 	- Returns: StringMessage
+ 	- Description: Get the cached average moves remaining
 
  - **get_game**
     - Path: 'game/{urlsafe_game_key}'
@@ -54,36 +44,67 @@ given time. Each game can be retrieved or played by using the path parameter
     - Returns: GameForm with current game state.
     - Description: Returns the current state of a game.
 
- - **make_move**
-    - Path: 'game/{urlsafe_game_key}'
-    - Method: PUT
-    - Parameters: urlsafe_game_key, guess
-    - Returns: GameForm with new game state.
-    - Description: Accepts a 'guess' and returns the updated state of the game.
-    If this causes a game to end, a corresponding Score entity will be created.
-
- - **get_scores**
-    - Path: 'scores'
+ - **get_game_history**
+    - Path: 'game_history/{urlsafe_game_key}'
     - Method: GET
-    - Parameters: None
-    - Returns: ScoreForms.
-    - Description: Returns all Scores in the database (unordered).
+    - Parameters: urlsafe_game_key
+    - Returns: GameHistoryForms
+    - Description: Returns the move history GameHistoryForm for each move in the game, including
+    the guess for each move and guess state.
+
+ - **get_high_scores**
+ 	- Path: 'high_scores'
+ 	- Method: GET
+ 	- Parameters: top_n_games (default = 5)
+ 	- Returns: ScoreForms
+ 	- Description: Return high scores for number of games specified or default (5).
+
+ - **get_ranks**
+ 	- Path: 'ranks'
+ 	- Method: GET
+ 	- Parameters: None
+ 	- Returns: RankForms
+ 	- Description: Return rankings of players based on average number of guesses from completed games.
+
+ - **get_user_games**
+	- Path: 'games/user/{user_name}'
+	- Method: GET
+	- Parameters: user_name
+	- Returns: GameForms
+	- Description: Returns all active Games for the provided player (unordered).
+	Will raise a NotFoundException if the User does not exist.
 
  - **get_user_scores**
     - Path: 'scores/user/{user_name}'
     - Method: GET
     - Parameters: user_name
-    - Returns: ScoreForms.
-    - Description: Returns all Scores recorded by the provided player (unordered).
+    - Returns: ScoreForms
+    - Description: Returns all Scores for completed games recorded by the provided player (unordered).
     Will raise a NotFoundException if the User does not exist.
 
- - **get_active_game_count**
-    - Path: 'games/active'
-    - Method: GET
-    - Parameters: None
-    - Returns: StringMessage
-    - Description: Gets the average number of attempts remaining for all games
-    from a previously cached memcache key.
+ - **guess_word**
+    - Path: 'game/guess_word/{urlsafe_game_key}'
+    - Method: PUT
+    - Parameters: urlsafe_game_key, guess
+    - Returns: GameForm with new game state.
+    - Description: Accepts a word 'guess' and returns the updated state of the game.
+    If this causes a game to end, a corresponding Score entity will be created.
+
+ - **make_move**
+    - Path: 'game/make_move/{urlsafe_game_key}'
+    - Method: PUT
+    - Parameters: urlsafe_game_key, guess
+    - Returns: GameForm with new game state.
+    - Description: Accepts a single letter 'guess' and returns the updated state of the game.
+    If this causes a game to end, a corresponding Score entity will be created.
+
+ - **new_game**
+    - Path: 'game'
+    - Method: POST
+    - Parameters: attempts (default it 10)
+    - Returns: GameForm with initial game state.
+    - Description: Creates a new Game. user_name provided must correspond to an
+    existing user - will raise a NotFoundException if not. Also adds a task to a task queue to update the average moves remaining for active games.
 
 ##Models Included:
  - **User**
@@ -94,6 +115,9 @@ given time. Each game can be retrieved or played by using the path parameter
 
  - **Score**
     - Records completed games. Associated with Users model via KeyProperty.
+
+ - **Guess**
+ 	- used as structered repeated property inside of the Game object.
 
 ##Forms Included:
  - **GameForm**
@@ -110,3 +134,16 @@ given time. Each game can be retrieved or played by using the path parameter
     - Multiple ScoreForm container.
  - **StringMessage**
     - General purpose String container.
+- **RankForm**
+    - Representation of a single player's rank
+- **RankForms**
+    - Multiple RankForm container, sorted by highest rank (1 = highest)
+- **GameHistoryForm**
+    - Representation of a move in a game.
+- **GameHistoryForm*s*
+    - Full game history container of all moves in a game.
+- **GuessWordForm**
+    - Used to create a word guess
+
+
+
