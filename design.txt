@@ -106,23 +106,38 @@ given time. Each game can be retrieved or played by using the path parameter
     - Description: Creates a new Game. user_name provided must correspond to an
     existing user - will raise a NotFoundException if not. Also adds a task to a task queue to update the average moves remaining for active games.
 
+##Models Included:
+ - **User**
+    - Stores unique user_name and (optional) email address.
+
+ - **Game**
+    - Stores unique game states. Associated with User model via KeyProperty.
+
+ - **Score**
+    - Records completed games. Associated with Users model via KeyProperty.
+
+ - **Guess**
+ 	- used as structered repeated property inside of the Game object.
 
 
+### Reflect on Your Design
+
+Document your design decisions by answering the following questions:
+
+- What additional properties did you add to your models and why?
+	- To the Game Model, I added: _set_guess_state, and update_guess_state models to track
+	what guesses the user had made, I also added the Guess model, to help track the guesses,
+	guess state, messages, and guess number for the current game. The Guess model is used when
+	generating a game's history.
+	- I also added a _return_history method to Game that returns all the moves and messages
+	for the given game.
+
+- What were some of the trade-offs or struggles you faced when implementing the new game logic?
+	- While the guess_history, guess_hist_obj, and guess_state values are a bit redundant,
+	they were convenient in the generation of move forms and the game history output.
+	- Ancestor queries are still a bit murky for me, in calling the cron job to notify users for unfinished,
+	games, I used multiple queries, whereas a simpler query that returned all users who had unfinished games would have been more elegant...
 
 
-
-all endpoints
-hangman.cancel_game	cancel a game in progress
-hangman.create_user	Create a User. Requires a unique username
-hangman.get_average_attempts_remaining	Get the cached average moves remaining
-hangman.get_game	Return the current game state.
-hangman.get_game_history	Return the move history of the game.
-hangman.get_high_scores	Return high scores
-hangman.get_ranks	Return rankings of players based on average guesses
-hangman.get_user_games	Returns all of an individual User's active games
-hangman.get_user_scores	Returns all of an individual User's scores
-hangman.guess_word	endpoint to guess a word
-hangman.make_move	endpoint to guess a letter
-hangman.new_game	Creates new game
 
 

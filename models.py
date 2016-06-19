@@ -9,9 +9,10 @@ from datetime import date
 from protorpc import messages
 from google.appengine.ext import ndb
 
-# put possible choice for wordlist here
+# put random choices for wordlist here
 WORDLIST = ['apple', 'orange','watermelon',
-            'papaya','raspberry', 'cucumber']
+            'papaya','raspberry', 'cucumber', 'rutabaga',
+            'pineapple', 'jicama']
 
 class User(ndb.Model):
     """User profile"""
@@ -42,7 +43,6 @@ class Game(ndb.Model):
     @classmethod
     def new_game(cls, user, attempts):
         """Creates and returns a new game"""
-        ## done: remove max min vars from method and arguments
         game = Game(user=user,
                     target=random.choice(WORDLIST),
                     attempts_allowed=attempts,
@@ -128,7 +128,6 @@ class GameForms(messages.Message):
     items = messages.MessageField(GameForm, 1, repeated=True)
 
 
-## won't need min max, but could enter words?
 class NewGameForm(messages.Message):
     """Used to create a new game"""
     user_name = messages.StringField(1, required=True)
@@ -139,7 +138,6 @@ class CancelGameForm(messages.Message):
     cancel = messages.BooleanField(1, default=False, required=True)
 
 
-## implement separate guess letter, guess word
 class MakeMoveForm(messages.Message):
     """Used to make a move, (Guess a letter) in an existing game"""
     guess = messages.StringField(1, required=True)
@@ -164,6 +162,7 @@ class ScoreForms(messages.Message):
 
 
 class GameHistoryForm(messages.Message):
+    """ move in a game's history"""
     message = messages.StringField(1, required=True)
     moves = messages.StringField(2, required=True)
 
