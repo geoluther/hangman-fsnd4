@@ -26,7 +26,7 @@ class SendReminderEmail(webapp2.RequestHandler):
             name = game.user.get().name
             email = game.user.get().email
 
-            subject = 'This is a reminder!'
+            subject = 'Hangman reminder!'
             body = 'Hello {}, you have one or more unfinished Hangman games'.format(name)
             # This will send test emails, the arguments to send_mail are:
             # from, to, subject, body
