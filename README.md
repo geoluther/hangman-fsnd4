@@ -134,15 +134,15 @@ given time. Each game can be retrieved or played by using the path parameter
     - Multiple ScoreForm container.
  - **StringMessage**
     - General purpose String container.
-- **RankForm**
+ - **RankForm**
     - Representation of a single player's rank
-- **RankForms**
+ - **RankForms**
     - Multiple RankForm container, sorted by highest rank (1 = highest)
-- **GameHistoryForm**
+ - **GameHistoryForm**
     - Representation of a move in a game.
-- **GameHistoryForm*s*
+ - **GameHistoryForm*s*
     - Full game history container of all moves in a game.
-- **GuessWordForm**
+ - **GuessWordForm**
     - Used to create a word guess
 
 
