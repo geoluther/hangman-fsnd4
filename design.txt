@@ -4,8 +4,8 @@
 Document your design decisions by answering the following questions:
 
 - What additional properties did you add to your models and why?
-	- To the Game Model, I added: _set_guess_state, and update_guess_state models to track
-	what guesses the user had made, I also added the Guess model, to help track the guesses,
+	- Game Model: I added _set_guess_state, and update_guess_state models to track
+	what guesses the user had made, I also added the Guess model, to help track guesses,
 	guess state, messages, and guess number for the current game. The Guess model is used when
 	generating a game's history.
 	- I also added a _return_history method to Game that returns all the moves and messages

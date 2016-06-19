@@ -1,40 +1,11 @@
 google app links:
 
-localhost http://localhost:8080/
+admin: http://localhost:8002/
 
 app engine api:
-http://localhost:8080/_ah/api/explorer
+http://localhost:10080/_ah/api/explorer
 
 mac chrome path to use this url:
-[path-to-Chrome] --user-data-dir=test --unsafely-treat-insecure-origin-as-secure=http://localhost:port
-
-
-appid:
-
-old hello api:
-
-oauth2 on google:
-
-web client ID:
-332710432157-95r17uuv42kv44nnt8d7lhn88gllp4lg.apps.googleusercontent.com
-
-Here is your client secret
-eMb2vnY9qF9082xFIYdF53I-
-
----------
-
-new conf:
-http://localhost:9080/_ah/api/explorer
-
-Here is your client ID
-989155667004-63q9inr9gphbsqrlnchhu6i8g94n3d5j.apps.googleusercontent.com
-Here is your client secret
-N3wNu4JAx0dN4UDQoPaiTIZV
-
-
-/Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary --user-data-dir=test --unsafely-treat-insecure-origin-as-secure=http://localhost:9080
-
-[path-to-Chrome] --user-data-dir=test --unsafely-treat-insecure-origin-as-secure=http://localhost:9080
 
 /Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary --user-data-dir=test --unsafely-treat-insecure-origin-as-secure=http://localhost:10080
 
