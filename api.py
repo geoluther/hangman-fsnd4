@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-`
-"""api.py - Create and configure the Game API exposing the resources.
-This can also contain game logic. For more complex games it would be wise to
-move game logic to another file. Ideally the API will be simple, concerned
-primarily with communication to/from the API's users."""
-
-## todos:
-## add endpoint to check for full word guess
-## check that only a single letter is entered for letter guess
-## return win if player guesses all letters correctly
+"""api.py -  Create, configure and operate a hangman game"""
 
 
 import logging
@@ -119,7 +111,7 @@ class GuessANumberApi(remote.Service):
         guess_obj = Guess(guess=request.guess, msg="")
 
         if game.game_over:
-            return game.to_form('Game already over!')
+            raise endpoints.ForbiddenException('Illegal action: Game is already over.')
 
         game.attempts_remaining -= 1
         guess_obj.guess_num = 1 + len(game.guess_history)
@@ -274,7 +266,7 @@ class GuessANumberApi(remote.Service):
                       response_message=GameForm,
                       path='game/cancel_game/{urlsafe_game_key}',
                       name='cancel_game',
-                      http_method='PUT')
+                      http_method='DELETE')
     def cancel_game(self, request):
         """cancel a game in progress"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
@@ -284,16 +276,16 @@ class GuessANumberApi(remote.Service):
           game.key.delete()
           return game.to_form("Game Deleted.")
 
-# get_high_scores, filter by top 10
-# add request_message with optional number to results
-# order by guess, descendng, and game_over = True
+
     @endpoints.method(request_message=HI_SCORE_REQUEST,
                       response_message=ScoreForms,
                       path='high_scores',
                       name='get_high_scores',
                       http_method='GET')
     def get_high_scores(self, request):
-        """Return high scores"""
+        """get_high_scores, filter by top 10
+        add request_message with optional number to results
+        order by guess, descendng, and game_over = True"""
         ng = request.top_n_games
         print "number of games: ", ng
 
