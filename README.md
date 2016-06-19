@@ -140,7 +140,7 @@ given time. Each game can be retrieved or played by using the path parameter
     - Multiple RankForm container, sorted by highest rank (1 = highest)
  - **GameHistoryForm**
     - Representation of a move in a game.
- - **GameHistoryForm*s*
+ - **GameHistoryForms**
     - Full game history container of all moves in a game.
  - **GuessWordForm**
     - Used to create a word guess
