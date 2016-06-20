@@ -280,8 +280,8 @@ class GuessANumberApi(remote.Service):
         ng = request.top_n_games
         print "number of games: ", ng
 
-        high_scores=[score.to_form() for
-          score in Score.query(Score.won == True).order(Score.guesses).fetch(ng)]
+        high_scores = [score.to_form() for
+            score in Score.query(Score.won == True).order(Score.guesses).fetch(ng)]
 
         return ScoreForms(items=high_scores)
 
