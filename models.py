@@ -17,7 +17,7 @@ WORDLIST = ['apple', 'orange','watermelon',
 class User(ndb.Model):
     """User profile"""
     name = ndb.StringProperty(required=True)
-    email =ndb.StringProperty()
+    email = ndb.StringProperty()
 
 
 class Guess(ndb.Model):
@@ -43,7 +43,7 @@ class Game(ndb.Model):
     @classmethod
     def new_game(cls, user, attempts):
         """Creates and returns a new game"""
-        game = Game(user=user,
+        game =Game(user=user,
                     target=random.choice(WORDLIST),
                     attempts_allowed=attempts,
                     attempts_remaining=attempts,
@@ -198,7 +198,7 @@ class RankForm(messages.Message):
     user = messages.StringField(1, required=True)
     avg_guesses =  messages.FloatField(2, required=True)
 
+
 class RankForms(messages.Message):
     """Users, sorted by lowest average guesses"""
     items = messages.MessageField(RankForm, 1, repeated=True)
-
