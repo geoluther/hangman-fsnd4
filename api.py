@@ -1,19 +1,31 @@
 # -*- coding: utf-8 -*-`
 """api.py -  Create, configure and operate a hangman game"""
 
-import logging
 import endpoints
-from operator import itemgetter, attrgetter, methodcaller
+from operator import attrgetter
 
 from protorpc import remote, messages
 from google.appengine.api import memcache
 from google.appengine.api import taskqueue
 
 from models import User, Game, Score, Guess
-from models import StringMessage, NewGameForm, GameForm, MakeMoveForm,\
-    ScoreForms, GuessWordForm, CancelGameForm, GameForms, GameHistoryForm,\
-    GuessForm, GuessHistoryForms, HighScoreForm, GameHistoryForm, \
-    RankForm, RankForms
+from models import (
+    StringMessage,
+    NewGameForm,
+    GameForm,
+    MakeMoveForm,
+    ScoreForms,
+    CancelGameForm,
+    GameForms,
+    GameHistoryForm,
+    GuessForm,
+    GuessHistoryForms,
+    HighScoreForm,
+    GameHistoryForm,
+    RankForm,
+    RankForms
+    )
+
 from utils import get_by_urlsafe
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
@@ -147,16 +159,11 @@ class GuessANumberApi(remote.Service):
                 game.put()
                 return game.to_form(msg)
 
-        # check if guess isn't a valid length, that is:
-        # not a single letter or the length of the word
-        elif len(request.guess) != len(game.target):
-                game.guess_history.append(request.guess)
-                game.update_guess_state(request.guess)
+        # otherwise, it's not a single letter or the word guess is wrong.
+        else:
                 game.attempts_remaining -= 1
-                msg = 'incorrect guess: give a single letter or full word'
-                guess_obj.msg = msg
-                game.guess_hist_obj.append(guess_obj)
-                game.put()
+                msg = 'incorrect letter or word guess'
+
 
         if game.attempts_remaining < 1:
             game.end_game(False)
@@ -166,6 +173,8 @@ class GuessANumberApi(remote.Service):
             return game.to_form(msg + ' Game over!')
         else:
             guess_obj.msg = msg
+            game.guess_history.append(request.guess)
+            game.update_guess_state(request.guess)
             game.guess_hist_obj.append(guess_obj)
             game.put()
             return game.to_form(msg)
