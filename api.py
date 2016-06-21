@@ -28,10 +28,6 @@ MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
     MakeMoveForm,
     urlsafe_game_key=messages.StringField(1),)
 
-GUESS_WORD_REQUEST = endpoints.ResourceContainer(
-    GuessWordForm,
-    urlsafe_game_key=messages.StringField(1),)
-
 USER_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1),
                                            email=messages.StringField(2))
 
@@ -70,7 +66,7 @@ class GuessANumberApi(remote.Service):
         user = User.query(User.name == request.user_name).get()
         if not user:
             raise endpoints.NotFoundException(
-                    'A User with that name does not exist!')
+                'A User with that name does not exist!')
         try:
             game = Game.new_game(user.key, request.attempts)
         except ValueError:
@@ -116,90 +112,56 @@ class GuessANumberApi(remote.Service):
             raise endpoints.ForbiddenException('Illegal action: Letters only.')
 
         if request.guess == game.target:
-            print "hooray! you win"
-
-        #  check guess is one letter only
-        if len(request.guess) != 1:
-            msg = 'One letter at a time please, guess again.'
-            guess_obj.msg = msg
-            game.guess_hist_obj.append(guess_obj)
-            game.put()
-            return game.to_form(msg)
-
-        # check if guess is already in history
-        if request.guess in game.guess_history:
-            msg = 'You already tried that, guess again.'
-            guess_obj.msg = msg
-
-        game.guess_history.append(request.guess)
-
-        if request.guess in game.target:
-            msg = 'The word contains your letter!'
-            game.update_guess_state(request.guess)
-            guess_obj.word_state = ' '.join(game.guess_state)
-        else:
-            msg = 'Letter not in word.'
-            game.attempts_remaining -= 1
-
-        if game.target == ''.join(game.guess_state):
+            print "Hooray! you win"
             game.end_game(True)
-            msg = 'You guessed all the letters, you win!'
+            msg = 'You guessed the word, you win!'
             guess_obj.msg = msg
+            guess_obj.word_state = game.target
             game.guess_hist_obj.append(guess_obj)
+            game.guess_state = [letter for letter in game.target]
             game.put()
             return game.to_form(msg)
+
+        # check if guess is a single letter
+        if len(request.guess) == 1:
+            # check if guess is already in history
+            if request.guess in game.guess_history:
+                msg = 'You already tried that, guess again.'
+                guess_obj.msg = msg
+
+            game.guess_history.append(request.guess)
+
+            if request.guess in game.target:
+                msg = 'The word contains your letter!'
+                game.update_guess_state(request.guess)
+                guess_obj.word_state = ' '.join(game.guess_state)
+            else:
+                msg = 'Nope! Guess Again!'
+                game.attempts_remaining -= 1
+
+            if game.target == ''.join(game.guess_state):
+                game.end_game(True)
+                msg = 'You guessed all the letters, you win!'
+                guess_obj.msg = msg
+                game.guess_hist_obj.append(guess_obj)
+                game.put()
+                return game.to_form(msg)
+
+        # check if guess isn't a valid length, that is:
+        # not a single letter or the length of the word
+        elif len(request.guess) != len(game.target):
+                game.guess_history.append(request.guess)
+                game.update_guess_state(request.guess)
+                game.attempts_remaining -= 1
+                msg = 'incorrect guess: give a single letter or full word'
+                guess_obj.msg = msg
+                game.guess_hist_obj.append(guess_obj)
+                game.put()
 
         if game.attempts_remaining < 1:
             game.end_game(False)
             guess_obj.msg = msg + ' Game over!'
             game.guess_hist_obj.append(guess_obj)
-            game.put()
-            return game.to_form(msg + ' Game over!')
-        else:
-            guess_obj.msg = msg
-            game.guess_hist_obj.append(guess_obj)
-            game.put()
-            return game.to_form(msg)
-
-    @endpoints.method(request_message=GUESS_WORD_REQUEST,
-                      response_message=GameForm,
-                      path='game/guess_word/{urlsafe_game_key}',
-                      name='guess_word',
-                      http_method='PUT')
-    def guess_word(self, request):
-        """endpoint to guess a word"""
-        game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if game.game_over:
-            return game.to_form('Game already over!')
-
-        guess_obj = Guess(guess=request.guess, msg="")
-
-        game.attempts_remaining -= 1
-        guess_obj.guess_num = 1 + len(game.guess_history)
-        guess_obj.word_state = ' '.join(game.guess_state)
-
-        if request.guess in game.guess_history:
-            msg = 'You already tried that word, guess again.'
-            guess_obj.msg = msg
-
-        game.guess_history.append(request.guess)
-
-        if request.guess == game.target:
-            msg = "You guessed the word, you win!"
-            game.update_guess_state(request.guess)
-            guess_obj.msg = msg
-            game.guess_hist_obj.append(guess_obj)
-            game.end_game(True)
-            game.put()
-            return game.to_form(msg)
-        else:
-            game.update_guess_state(request.guess)
-            msg = "That's not the word."
-
-        if game.attempts_remaining < 1:
-            game.end_game(True)
-            guess_obj.msg = msg
-            game.guess_hist_obj.append(msg + ' Game over!')
             game.put()
             return game.to_form(msg + ' Game over!')
         else:
@@ -337,3 +299,4 @@ class GuessANumberApi(remote.Service):
 
 
 api = endpoints.api_server([GuessANumberApi])
+

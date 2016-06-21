@@ -60,7 +60,7 @@ class Game(ndb.Model):
         self.guess_state = g
 
     def update_guess_state(self, letter):
-        """update letter in word display"""
+        """update letters in word display"""
         for i in range(len(self.target)):
             if letter == self.target[i]:
                 self.guess_state[i] = letter
