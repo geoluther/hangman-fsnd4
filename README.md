@@ -87,13 +87,12 @@ Incorrect letter and incorrect word guesses count against the number of guesses.
     - Description: Returns all Scores for completed games recorded by the provided player (unordered).
     Will raise a NotFoundException if the User does not exist.
 
-(removed, make_move now checks words)
+- (removed, make_move now checks for words)
  - ~~**guess_word**~~
     ~~- Path: 'game/guess_word/{urlsafe_game_key}'~~
     - ~~Method: PUT~~
     - ~~Parameters: urlsafe_game_key, guess~~
     - ~~Returns: GameForm with new game state.~~
-
     - ~~Description: Accepts a word 'guess' and returns the updated state of the game.~~
       ~~If this causes a game to end, a corresponding Score entity will be created.~~
 

@@ -97,7 +97,7 @@ class GuessANumberApi(remote.Service):
                       name='make_move',
                       http_method='PUT')
     def make_move(self, request):
-        """endpoint to guess a letter"""
+        """endpoint to guess a letter or the word"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         guess_obj = Guess(guess=request.guess, msg="")
 
