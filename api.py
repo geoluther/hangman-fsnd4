@@ -134,12 +134,16 @@ class GuessANumberApi(remote.Service):
             game.put()
             return game.to_form(msg)
 
+        if request.guess in game.guess_history:
+            msg = "You already tried that, guess again. Lose a turn for being foolish."
+            game.attempts_remaining -= 1
+            guess_obj.msg = msg
+            game.guess_hist_obj.append(guess_obj)
+            game.put()
+            return game.to_form(msg)
+
         # check if guess is a single letter
         if len(request.guess) == 1:
-            # check if guess is already in history
-            if request.guess in game.guess_history:
-                msg = 'You already tried that, guess again.'
-                guess_obj.msg = msg
 
             game.guess_history.append(request.guess)
 
@@ -158,12 +162,10 @@ class GuessANumberApi(remote.Service):
                 game.guess_hist_obj.append(guess_obj)
                 game.put()
                 return game.to_form(msg)
-
         # otherwise, it's not a single letter or the word guess is wrong.
         else:
                 game.attempts_remaining -= 1
-                msg = 'incorrect letter or word guess'
-
+                msg = 'Incorrect, try again.'
 
         if game.attempts_remaining < 1:
             game.end_game(False)
