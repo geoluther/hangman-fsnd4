@@ -99,7 +99,7 @@ class GuessANumberApi(remote.Service):
         """Return the current game state."""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
-            return game.to_form('Time to make a move!')
+            return game.to_form('Time to make a move?')
         else:
             raise endpoints.NotFoundException('Game not found!')
 
@@ -111,7 +111,8 @@ class GuessANumberApi(remote.Service):
     def make_move(self, request):
         """endpoint to guess a letter or the word"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        guess_obj = Guess(guess=request.guess, msg="")
+        guess = request.guess.lower()
+        guess_obj = Guess(guess=guess, msg="")
 
         if game.game_over:
             raise endpoints.ForbiddenException('Illegal action: Game is already over.')
@@ -120,11 +121,10 @@ class GuessANumberApi(remote.Service):
         guess_obj.word_state = ' '.join(game.guess_state)
 
         # check if isalpha
-        if request.guess.isalpha() == False:
+        if guess.isalpha() == False:
             raise endpoints.ForbiddenException('Illegal action: Letters only.')
 
-        if request.guess == game.target:
-            print "Hooray! you win"
+        if guess == game.target:
             game.end_game(True)
             msg = 'You guessed the word, you win!'
             guess_obj.msg = msg
@@ -134,7 +134,7 @@ class GuessANumberApi(remote.Service):
             game.put()
             return game.to_form(msg)
 
-        if request.guess in game.guess_history:
+        if guess in game.guess_history:
             msg = "You already tried that, guess again. Lose a turn for being foolish."
             game.attempts_remaining -= 1
             guess_obj.msg = msg
@@ -143,13 +143,13 @@ class GuessANumberApi(remote.Service):
             return game.to_form(msg)
 
         # check if guess is a single letter
-        if len(request.guess) == 1:
+        if len(guess) == 1:
 
-            game.guess_history.append(request.guess)
+            game.guess_history.append(guess)
 
-            if request.guess in game.target:
+            if guess in game.target:
                 msg = 'The word contains your letter!'
-                game.update_guess_state(request.guess)
+                game.update_guess_state(guess)
                 guess_obj.word_state = ' '.join(game.guess_state)
             else:
                 msg = 'Nope! Guess Again!'
@@ -175,8 +175,8 @@ class GuessANumberApi(remote.Service):
             return game.to_form(msg + ' Game over!')
         else:
             guess_obj.msg = msg
-            game.guess_history.append(request.guess)
-            game.update_guess_state(request.guess)
+            game.guess_history.append(guess)
+            game.update_guess_state(guess)
             game.guess_hist_obj.append(guess_obj)
             game.put()
             return game.to_form(msg)
