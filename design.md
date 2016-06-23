@@ -16,7 +16,11 @@ Document your design decisions by answering the following questions:
 	they were convenient in the generation of move forms and the game history output.
 	- Ancestor queries are still a bit murky for me, in calling the cron job to notify users for unfinished,
 	games, I used multiple queries, whereas a simpler query that returned all users who had unfinished games would have been more elegant...
-	- another struggle was separating guessing single letters vs. words, thanks to the reviewer feedback, i was able to add functionality for both in the same function
+	- another struggle was separating guessing single letters vs. words, thanks to the reviewer feedback, i was able to add functionality for both in the same function.
+
+
+- Note:
+	- hangman.py file was a preliminary class to sketch out game logic before implementing into the api.
 
 
 

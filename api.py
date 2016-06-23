@@ -99,7 +99,7 @@ class GuessANumberApi(remote.Service):
         """Return the current game state."""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
-            return game.to_form('Time to make a move?')
+            return game.to_form('State of the game!')
         else:
             raise endpoints.NotFoundException('Game not found!')
 
@@ -111,6 +111,7 @@ class GuessANumberApi(remote.Service):
     def make_move(self, request):
         """endpoint to guess a letter or the word"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        # make guess lower case
         guess = request.guess.lower()
         guess_obj = Guess(guess=guess, msg="")
 
