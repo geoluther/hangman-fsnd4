@@ -1,5 +1,5 @@
 ## hangman game
-## basic stand alone, **not** what the app runs
+## basic dev stand alone, **not** what the app runs
 ## todo: deal with whitespace
 
 from random import choice
@@ -49,7 +49,7 @@ class Hangman():
         if letter in self.guess_history:
             return "You already guessed this letter, try again"
 
-        self.guesses_left += -1
+        self.guesses_left -= 1
         self.guess_history.append(letter)
 
         if letter in self.word:

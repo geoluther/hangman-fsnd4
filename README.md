@@ -101,7 +101,7 @@ Incorrect letter and incorrect word guesses count against the number of guesses.
     - Method: PUT
     - Parameters: urlsafe_game_key, guess
     - Returns: GameForm with new game state.
-    - Description: Accepts a 'guess' of a single letter or a work and returns the updated state of the game, notifiying the user if the letter is in the word or the word guess was correct. If either incorrect, player will be penalized a move.
+    - Description: Accepts a 'guess' of a single letter or a word and returns the updated state of the game, notifiying the user if the letter is in the word or the word guess was correct. If either incorrect, player will be penalized a move.
     If this causes a game to end, a corresponding Score entity will be created.
 
  - **new_game**
